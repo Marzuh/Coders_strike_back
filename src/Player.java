@@ -39,6 +39,8 @@ class Player {
     private int thrustInt = 100;
     private String thrustStr = "";
     public static final int SLOWING_RADIUS = 4 * 600;//4 times checkpoint radius
+    private double accelerationCoefficientFromDist = 0;
+    private double accelerationCoefficientFromAngle = 0;
 
 
     /**
@@ -120,6 +122,7 @@ class Player {
 
     /**
      * Method contains console outputs with debug info about checkpoints
+     *
      * @param p player
      */
     public void CheckpointsDebug(Player p) {
@@ -132,13 +135,49 @@ class Player {
 
     }
 
+    /**
+     * Activate boost if it is not first lap, ship moving to farthest checkpoint and angle to target is 0;
+     *
+     * @param p player
+     */
     private void boostController(Player p) {
         if (!p.firstLap && p.checkpointsArray.get(p.checkpointIdForBoost).getX() == p.nextCheckpointX
                 && p.checkpointsArray.get(p.checkpointIdForBoost).getY() == p.nextCheckpointY && p.boostAvailable
                 && p.nextCheckpointAngle == 0) {
             p.boostAvailable = false;
-            p.thrustStr = " BOOST";
+            p.thrustStr = "BOOST";
         }
+    }
+
+
+    /**
+     * Set acceleration coefficient depends on distance between 0 and 1.
+     *
+     * @param p player
+     */
+    private void setAccelerationCoefficientFromDist(Player p) {
+        //May be better solution
+        //if(p.nextCheckpointDist<SLOWING_RADIUS){
+        //p.thrustInt *= p.nextCheckpointDist/SLOWING_RADIUS;
+        //}
+        double result = (p.nextCheckpointDist / (double) (SLOWING_RADIUS));
+        if (result > 1) {
+            result = 1;
+        }
+        if (result < 0.1) {
+            result = 0.1;
+        }
+        p.accelerationCoefficientFromDist = result;
+    }
+
+
+    /**
+     * Set acceleration coefficient depends on angle between 0 and 1.
+     *
+     * @param p player
+     */
+    private void setAccelerationCoefficientFromAngle(Player p) {
+        p.accelerationCoefficientFromAngle = Math.cos(Math.toRadians(p.nextCheckpointAngle));
     }
 
     public static void main(String args[]) {
@@ -169,6 +208,18 @@ class Player {
             if (p.nextCheckpointAngle != 0) {
                 //1)steering vector
                 //3)Slowing down
+                //if angle too big stop acceleration
+                if (p.nextCheckpointAngle >= 90 || p.nextCheckpointAngle <= -90) {
+                    p.thrustInt = 0;
+                }
+                if (Math.abs(p.nextCheckpointAngle) < 90) {
+                    p.setAccelerationCoefficientFromAngle(p);
+                }
+                p.setAccelerationCoefficientFromDist(p);
+                p.thrustInt = (int) Math.round(100 * p.accelerationCoefficientFromDist
+                        * p.accelerationCoefficientFromAngle);
+                p.thrustStr = Integer.toString(p.thrustInt);
+                System.out.println(p.nextCheckpointX + " " + p.nextCheckpointY + " " + p.thrustStr);
 
             } else {
                 //not steering
@@ -177,9 +228,12 @@ class Player {
                 if (p.boostAvailable) {
                     p.boostController(p);
                 }
-                if (p.nextCheckpointDist < SLOWING_RADIUS){
-
-                }
+                p.setAccelerationCoefficientFromDist(p);
+                p.setAccelerationCoefficientFromAngle(p);
+                p.thrustInt = (int) Math.round(100 * p.accelerationCoefficientFromDist
+                        * p.accelerationCoefficientFromAngle);
+                p.thrustStr = Integer.toString(p.thrustInt);
+                System.out.println(p.nextCheckpointX + " " + p.nextCheckpointY + " " + p.thrustStr);
             }
 
 
