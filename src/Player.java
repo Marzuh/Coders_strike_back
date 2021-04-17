@@ -1,11 +1,6 @@
-import java.util.*;
-import java.io.*;
-import java.math.*;
+import java.util.ArrayList;
+import java.util.Scanner;
 
-/**
- * Auto-generated code below aims at helping you parse
- * the standard input according to the problem statement.
- **/
 
 /**
  * Steering Behaviors
@@ -30,7 +25,7 @@ class Player {
     private boolean boostAvailable = true;
     private boolean firstLap = true;
     private static int checkPointIdForArray = 0;
-    private ArrayList<Player.Checkpoint> checkpointsArray = new ArrayList<>();
+    private final ArrayList<Player.Checkpoint> checkpointsArray = new ArrayList<>();
     private int prevTargetX = 0;
     private int prevTargetY = 0;
     private int checkpointIdForBoost = -1;
@@ -41,6 +36,11 @@ class Player {
     public static final int SLOWING_RADIUS = 4 * 600;//4 times checkpoint radius
     private double accelerationCoefficientFromDist = 0;
     private double accelerationCoefficientFromAngle = 0;
+    private int prevX = 0;
+    private int prevY = 0;
+    private Vector currentDirection = new Vector();
+    private Vector steeringDirection = new Vector();
+    private Vector desiredDirection = new Vector();
 
 
     /**
@@ -149,23 +149,72 @@ class Player {
         }
     }
 
+    class Vector {
+        private int x;
+        private int y;
 
+
+        public double getLength() {
+            return Math.sqrt(this.x * this.x + this.y + this.y);
+        }
+
+        public int getX() {
+            return x;
+        }
+
+        public void setX(int x) {
+            this.x = x;
+        }
+
+        public int getY() {
+            return y;
+        }
+
+        public void setY(int y) {
+            this.y = y;
+        }
+
+
+        public void debug() {
+            System.err.println("Vector x: " + this.x + " y: " + this.y);
+        }
+
+    }
+
+    public Vector normalize(Vector vector) {
+        vector.setX(vector.x / (int) vector.getLength());
+        vector.setY(vector.y / (int) vector.getLength());
+        return vector;
+    }
+
+    public Vector vectorsSubtraction(Vector v1, Vector v2) {
+        Vector resultVector = new Vector();
+        resultVector.setX(v1.getX() - v2.getX());
+        resultVector.setY(v1.getY() - v2.getY());
+        return resultVector;
+    }
+
+    public void vectorDebug(Player p){
+        System.err.println("Desired x" +p.desiredDirection.getX());
+        System.err.println("Desired y" +p.desiredDirection.getY());
+        System.err.println("Current x" +p.currentDirection.getX());
+        System.err.println("Current y" +p.currentDirection.getY());
+        System.err.println("Steering x" +p.steeringDirection.getX());
+        System.err.println("Steering  y" +p.steeringDirection.getY());
+
+    }
     /**
      * Set acceleration coefficient depends on distance between 0 and 1.
      *
      * @param p player
      */
     private void setAccelerationCoefficientFromDist(Player p) {
-        //May be better solution
-        //if(p.nextCheckpointDist<SLOWING_RADIUS){
-        //p.thrustInt *= p.nextCheckpointDist/SLOWING_RADIUS;
-        //}
         double result = (p.nextCheckpointDist / (double) (SLOWING_RADIUS));
         if (result > 1) {
             result = 1;
         }
-        if (result < 0.1) {
-            result = 0.1;
+        if (result < 0.05) {
+            result = 0.05;
         }
         p.accelerationCoefficientFromDist = result;
     }
@@ -207,6 +256,8 @@ class Player {
         p.thrustStr = Integer.toString(p.thrustInt);
         p.prevTargetX = p.nextCheckpointX;
         p.prevTargetY = p.nextCheckpointY;
+        p.prevX = p.x;
+        p.prevY = p.y;
         p.errLog(p);
         System.out.println(p.nextCheckpointX + " " + p.nextCheckpointY + " " + p.thrustStr);
     }
@@ -225,21 +276,26 @@ class Player {
             p.opponentX = in.nextInt();
             p.opponentY = in.nextInt();
 
-            // Write an action using System.out.println()
-            // To debug: System.err.println("Debug messages...");
 
             p.addCheckpointToArrayList(p);
             p.findFarthestCheckpointIndex(p);
 
-            // You have to output the target position
-            // followed by the power (0 <= thrust <= 100) or "BOOST"
-            // i.e.: "x y thrust"
-
-            //PSEUDO CODE
             if (p.nextCheckpointAngle != 0) {
+
                 //1)steering vector
+                p.desiredDirection.setX(p.nextCheckpointX - p.x);
+                p.desiredDirection.setY(p.nextCheckpointY - p.y);
+                //p.desiredDirection = p.normalize(p.desiredDirection);
+                p.currentDirection.setX(p.x - p.prevX);
+                p.currentDirection.setY(p.y - p.prevY);
+                //p.currentDirection = p.normalize(p.currentDirection);
+                p.steeringDirection = p.vectorsSubtraction(p.desiredDirection, p.currentDirection);
+                //p.steeringDirection = p.normalize(p.steeringDirection);
+
+                p.nextCheckpointX += p.steeringDirection.getX() * 100;
+                p.nextCheckpointY += p.steeringDirection.getY() * 100;
+
                 //3)Slowing down
-                //if angle too big stop acceleration
                 if (p.nextCheckpointAngle >= 90 || p.nextCheckpointAngle <= -90) {
                     p.thrustInt = 0;
                 }
@@ -252,7 +308,6 @@ class Player {
             } else {
                 //not steering
                 //2)check boost
-                //max thrust
                 if (p.boostAvailable) {
                     p.boostController(p);
                 }
