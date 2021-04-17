@@ -91,14 +91,15 @@ class Player {
     }
 
     /**
+     * find index of checkpoint with longest distance
+     *
      * @param p player
-     * @return Id of next checkpoint with longest distance to it
      */
     private void findFarthestCheckpointIndex(Player p) {
         int index = 0;
         if (!p.firstLap) {
             double longestDistance = 0;
-            double distance = 0;
+            double distance;
             for (int i = 0; i < p.checkpointsArray.size(); i++) {
                 if (i == 0) {
                     distance = Math.sqrt(Math.pow(((double) p.checkpointsArray.get(i).getX()
@@ -127,7 +128,7 @@ class Player {
      */
     public void CheckpointsDebug(Player p) {
         System.err.println("First lap " + p.firstLap);
-        System.err.println("Boost avaliable " + p.boostAvailable);
+        System.err.println("Boost available " + p.boostAvailable);
         System.err.println("next check point x " + p.nextCheckpointX);
         System.err.println("next check point y " + p.nextCheckpointY);
         System.err.println("Points in list " + p.checkpointsArray.size());
@@ -179,12 +180,23 @@ class Player {
 
     }
 
+    /**
+     * @param vector Vector to normalize
+     * @return normilized vector
+     */
     public Vector normalize(Vector vector) {
         vector.setX(vector.x / vector.getLength());
         vector.setY(vector.y / vector.getLength());
         return vector;
     }
 
+    /**
+     * Subtraction vector v2 from vector v1.
+     *
+     * @param v1 Vector to subtract from
+     * @param v2 Vector to subtract
+     * @return
+     */
     public Vector vectorsSubtraction(Vector v1, Vector v2) {
         Vector resultVector = new Vector();
         resultVector.setX(v1.getX() - v2.getX());
@@ -192,6 +204,13 @@ class Player {
         return resultVector;
     }
 
+    /**
+     * Method that rotates vector for given angle
+     *
+     * @param v     vector
+     * @param angle angle to rotate
+     * @return rotated vector
+     */
     public Vector rotateVector(Vector v, int angle) {
         Vector v1 = new Vector();
         double radiansAngle = Math.toRadians(angle);
@@ -274,7 +293,7 @@ class Player {
         System.out.println(p.nextCheckpointX + " " + p.nextCheckpointY + " " + p.thrustStr);
     }
 
-    public static void main(String args[]) {
+    public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
         Player p = new Player();
         // game loop
@@ -318,7 +337,6 @@ class Player {
                 p.setControlCommand(p);
 
             } else {
-                //not steering
                 //2)check boost
                 if (p.boostAvailable) {
                     p.boostController(p);
@@ -327,9 +345,6 @@ class Player {
                 p.setAccelerationCoefficientFromAngle(p);
                 p.setControlCommand(p);
             }
-
-
-            ;
         }
     }
 }
