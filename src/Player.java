@@ -182,11 +182,13 @@ class Player {
 
     /**
      * Method contains console outputs with debug info about ship moving
+     *
      * @param p player
      */
     private void errLog(Player p) {
         System.err.println("Coordinates x: " + p.x + "\ty: " + p.y);
         System.err.println("First lap: " + p.firstLap);
+        System.err.println("Boost available " + p.boostAvailable);
         System.err.println("Thrust: " + p.thrustInt);
         System.err.println("Angle " + p.nextCheckpointAngle);
         System.err.println("Distance " + p.nextCheckpointDist);
@@ -194,7 +196,12 @@ class Player {
         System.err.println("accCoefAngl " + p.accelerationCoefficientFromAngle);
     }
 
-    private void setControlCommand(Player p){
+    /**
+     * Set thrust and give control console output
+     *
+     * @param p player
+     */
+    private void setControlCommand(Player p) {
         p.thrustInt = (int) Math.round(100 * p.accelerationCoefficientFromDist
                 * p.accelerationCoefficientFromAngle);
         p.thrustStr = Integer.toString(p.thrustInt);
@@ -255,8 +262,7 @@ class Player {
             }
 
 
-
-;
+            ;
         }
     }
 }
