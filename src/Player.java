@@ -150,30 +150,28 @@ class Player {
     }
 
     class Vector {
-        private int x;
-        private int y;
-
+        private double x;
+        private double y;
 
         public double getLength() {
-            return Math.sqrt(this.x * this.x + this.y + this.y);
+            return Math.sqrt(this.x * this.x + this.y * this.y);
         }
 
-        public int getX() {
+        public double getX() {
             return x;
         }
 
-        public void setX(int x) {
+        public void setX(double x) {
             this.x = x;
         }
 
-        public int getY() {
+        public double getY() {
             return y;
         }
 
-        public void setY(int y) {
+        public void setY(double y) {
             this.y = y;
         }
-
 
         public void debug() {
             System.err.println("Vector x: " + this.x + " y: " + this.y);
@@ -182,8 +180,8 @@ class Player {
     }
 
     public Vector normalize(Vector vector) {
-        vector.setX(vector.x / (int) vector.getLength());
-        vector.setY(vector.y / (int) vector.getLength());
+        vector.setX(vector.x / vector.getLength());
+        vector.setY(vector.y / vector.getLength());
         return vector;
     }
 
@@ -194,15 +192,26 @@ class Player {
         return resultVector;
     }
 
-    public void vectorDebug(Player p){
-        System.err.println("Desired x" +p.desiredDirection.getX());
-        System.err.println("Desired y" +p.desiredDirection.getY());
-        System.err.println("Current x" +p.currentDirection.getX());
-        System.err.println("Current y" +p.currentDirection.getY());
-        System.err.println("Steering x" +p.steeringDirection.getX());
-        System.err.println("Steering  y" +p.steeringDirection.getY());
+    public Vector rotateVector(Vector v, int angle) {
+        Vector v1 = new Vector();
+        double radiansAngle = Math.toRadians(angle);
+        double sinAngle = Math.sin(radiansAngle);
+        double cosAngle = Math.cos(radiansAngle);
+        v1.setX(v.getX() * cosAngle - v.getY() * sinAngle);
+        v1.setY(v.getY() * cosAngle + v.getX() * sinAngle);
+        return v1;
+    }
+
+    public void vectorDebug(Player p) {
+        System.err.println("Desired x" + p.desiredDirection.getX());
+        System.err.println("Desired y" + p.desiredDirection.getY());
+        System.err.println("Current x" + p.currentDirection.getX());
+        System.err.println("Current y" + p.currentDirection.getY());
+        System.err.println("Steering x" + p.steeringDirection.getX());
+        System.err.println("Steering  y" + p.steeringDirection.getY());
 
     }
+
     /**
      * Set acceleration coefficient depends on distance between 0 and 1.
      *
@@ -213,8 +222,8 @@ class Player {
         if (result > 1) {
             result = 1;
         }
-        if (result < 0.05) {
-            result = 0.05;
+        if (result < 0.03) {
+            result = 0.03;
         }
         p.accelerationCoefficientFromDist = result;
     }
@@ -229,8 +238,10 @@ class Player {
         p.accelerationCoefficientFromAngle = Math.cos(Math.toRadians(p.nextCheckpointAngle));
     }
 
+
     /**
      * Method contains console outputs with debug info about ship moving
+     * p
      *
      * @param p player
      */
@@ -240,6 +251,7 @@ class Player {
         System.err.println("Boost available " + p.boostAvailable);
         System.err.println("Thrust: " + p.thrustInt);
         System.err.println("Angle " + p.nextCheckpointAngle);
+        System.err.println("Speed: " + Math.sqrt(Math.pow((p.x - p.prevX), 2) + Math.pow((p.y - p.prevY), 2)));
         System.err.println("Distance " + p.nextCheckpointDist);
         System.err.println("accCoefDist " + p.accelerationCoefficientFromDist);
         System.err.println("accCoefAngl " + p.accelerationCoefficientFromAngle);
@@ -285,15 +297,14 @@ class Player {
                 //1)steering vector
                 p.desiredDirection.setX(p.nextCheckpointX - p.x);
                 p.desiredDirection.setY(p.nextCheckpointY - p.y);
-                //p.desiredDirection = p.normalize(p.desiredDirection);
-                p.currentDirection.setX(p.x - p.prevX);
-                p.currentDirection.setY(p.y - p.prevY);
-                //p.currentDirection = p.normalize(p.currentDirection);
+                p.desiredDirection = p.normalize(p.desiredDirection);
+                p.currentDirection = p.rotateVector(p.desiredDirection, -p.nextCheckpointAngle);
+                p.currentDirection = p.normalize(p.currentDirection);
                 p.steeringDirection = p.vectorsSubtraction(p.desiredDirection, p.currentDirection);
-                //p.steeringDirection = p.normalize(p.steeringDirection);
+                p.steeringDirection = p.normalize(p.steeringDirection);
+                p.nextCheckpointX += (int) Math.round(p.steeringDirection.getX() * 100);
+                p.nextCheckpointY += (int) Math.round(p.steeringDirection.getY() * 100);
 
-                p.nextCheckpointX += p.steeringDirection.getX() * 100;
-                p.nextCheckpointY += p.steeringDirection.getY() * 100;
 
                 //3)Slowing down
                 if (p.nextCheckpointAngle >= 90 || p.nextCheckpointAngle <= -90) {
@@ -303,6 +314,7 @@ class Player {
                     p.setAccelerationCoefficientFromAngle(p);
                 }
                 p.setAccelerationCoefficientFromDist(p);
+
                 p.setControlCommand(p);
 
             } else {
