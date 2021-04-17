@@ -6,9 +6,17 @@ import java.math.*;
  * Auto-generated code below aims at helping you parse
  * the standard input according to the problem statement.
  **/
+
+/**
+ * Steering Behaviors
+ * https://gamedevelopment.tutsplus.com/series/understanding-steering-behaviors--gamedev-12732
+ * 1. Seek
+ * 2. Boost
+ * 3. Slowing Down
+ */
 class Player {
     //for input reading
-    private boolean boost = true;
+
     private int x = 0;
     private int y = 0;
     private int nextCheckpointX = 0; // x position of the next check point
@@ -18,14 +26,19 @@ class Player {
     private int opponentX = 0;
     private int opponentY = 0;
 
-    //for checkpoints
-
+    //for checkpoints and boost
+    private boolean boostAvailable = true;
     private boolean firstLap = true;
     private static int checkPointIdForArray = 0;
     private ArrayList<Player.Checkpoint> checkpointsArray = new ArrayList<>();
     private int prevTargetX = 0;
     private int prevTargetY = 0;
     private int checkpointIdForBoost = -1;
+
+    //steering and acceleration
+    private int thrustInt = 100;
+    private String thrustStr = "";
+    public static final int SLOWING_RADIUS = 4 * 600;//4 times checkpoint radius
 
 
     /**
@@ -62,7 +75,7 @@ class Player {
      */
     private void addCheckpointToArrayList(Player p) {
         if (firstLap && p.nextCheckpointX != p.prevTargetX && p.nextCheckpointY != p.prevTargetY) {
-            Player.Checkpoint cp = new Checkpoint(p.nextCheckpointX, p.nextCheckpointY, p.checkPointIdForArray);
+            Player.Checkpoint cp = new Checkpoint(p.nextCheckpointX, p.nextCheckpointY, Player.checkPointIdForArray);
 
             if (p.checkpointsArray.isEmpty() || (p.checkpointsArray.get(0).getX() != p.nextCheckpointX
                     && p.checkpointsArray.get(0).getY() != p.nextCheckpointY)) {
@@ -105,8 +118,13 @@ class Player {
         p.checkpointIdForBoost = index;
     }
 
+    /**
+     * Method contains console outputs with debug info about checkpoints
+     * @param p player
+     */
     public void CheckpointsDebug(Player p) {
-        System.err.println("First lap " + firstLap);
+        System.err.println("First lap " + p.firstLap);
+        System.err.println("Boost avaliable " + p.boostAvailable);
         System.err.println("next check point x " + p.nextCheckpointX);
         System.err.println("next check point y " + p.nextCheckpointY);
         System.err.println("Points in list " + p.checkpointsArray.size());
@@ -115,16 +133,11 @@ class Player {
     }
 
     private void boostController(Player p) {
-        if (!p.firstLap) {
-            System.err.println("Checkpoint ID with longest distance " + p.checkpointIdForBoost);
-        }
-
         if (!p.firstLap && p.checkpointsArray.get(p.checkpointIdForBoost).getX() == p.nextCheckpointX
-                && p.checkpointsArray.get(p.checkpointIdForBoost).getY() == p.nextCheckpointY && p.boost
+                && p.checkpointsArray.get(p.checkpointIdForBoost).getY() == p.nextCheckpointY && p.boostAvailable
                 && p.nextCheckpointAngle == 0) {
-            p.boost = false;
-            System.err.println("ACTIVATE BOOST");
-            System.out.println(p.nextCheckpointX + " " + p.nextCheckpointY + "BOOST");
+            p.boostAvailable = false;
+            p.thrustStr = " BOOST";
         }
     }
 
@@ -146,10 +159,29 @@ class Player {
             // To debug: System.err.println("Debug messages...");
             p.addCheckpointToArrayList(p);
             p.CheckpointsDebug(p);
+            p.findFarthestCheckpointIndex(p);
             p.boostController(p);
             // You have to output the target position
             // followed by the power (0 <= thrust <= 100) or "BOOST"
             // i.e.: "x y thrust"
+
+            //PSEUDO CODE
+            if (p.nextCheckpointAngle != 0) {
+                //1)steering vector
+                //3)Slowing down
+
+            } else {
+                //not steering
+                //2)check boost
+                //max thrust
+                if (p.boostAvailable) {
+                    p.boostController(p);
+                }
+                if (p.nextCheckpointDist < SLOWING_RADIUS){
+
+                }
+            }
+
 
             p.prevTargetX = p.nextCheckpointX;
             p.prevTargetY = p.nextCheckpointY;
