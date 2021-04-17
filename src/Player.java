@@ -8,6 +8,7 @@ import java.math.*;
  **/
 class Player {
     //for input reading
+    private boolean boost = true;
     private int x = 0;
     private int y = 0;
     private int nextCheckpointX = 0; // x position of the next check point
@@ -19,11 +20,13 @@ class Player {
 
     //for checkpoints
 
-    public boolean firstLap = true;
-    private static int checkPointIdForArray = 1;
-    public ArrayList<Player.Checkpoint> checkpointsArray = new ArrayList<>();
+    private boolean firstLap = true;
+    private static int checkPointIdForArray = 0;
+    private ArrayList<Player.Checkpoint> checkpointsArray = new ArrayList<>();
     private int prevTargetX = 0;
     private int prevTargetY = 0;
+    private int checkpointIdForBoost = -1;
+
 
     /**
      * new class for holding checkpoints coordinates
@@ -54,6 +57,7 @@ class Player {
 
     /**
      * Method control if checkpoint in list, and if no add it.
+     *
      * @param p player
      */
     private void addCheckpointToArrayList(Player p) {
@@ -71,15 +75,58 @@ class Player {
         }
     }
 
-    public void CheckpointsDebug(Player p){
-        System.err.println("First lap "+firstLap);
-        System.err.println("next check point x "+p.nextCheckpointX);
-        System.err.println("next check point y "+p.nextCheckpointY);
+    /**
+     * @param p player
+     * @return Id of next checkpoint with longest distance to it
+     */
+    private void findFarthestCheckpointIndex(Player p) {
+        int index = 0;
+        if (!p.firstLap) {
+            double longestDistance = 0;
+            double distance = 0;
+            for (int i = 0; i < p.checkpointsArray.size(); i++) {
+                if (i == 0) {
+                    distance = Math.sqrt(Math.pow(((double) p.checkpointsArray.get(i).getX()
+                            - p.checkpointsArray.get(p.checkpointsArray.size() - 1).getX()), 2)
+                            + Math.pow(((double) p.checkpointsArray.get(i).getX()
+                            - p.checkpointsArray.get(p.checkpointsArray.size() - 1).getX()), 2));
+                } else {
+                    distance = Math.sqrt(Math.pow(((double) p.checkpointsArray.get(i).getX()
+                            - p.checkpointsArray.get(i - 1).getX()), 2)
+                            + Math.pow(((double) p.checkpointsArray.get(i).getX()
+                            - p.checkpointsArray.get(i - 1).getX()), 2));
+                }
+                if (distance > longestDistance) {
+                    longestDistance = distance;
+                    index = i;
+                }
+            }
+        }
+        p.checkpointIdForBoost = index;
+    }
 
+    public void CheckpointsDebug(Player p) {
+        System.err.println("First lap " + firstLap);
+        System.err.println("next check point x " + p.nextCheckpointX);
+        System.err.println("next check point y " + p.nextCheckpointY);
         System.err.println("Points in list " + p.checkpointsArray.size());
+        System.err.println("Checkpoint id for boost " + p.checkpointIdForBoost);
 
     }
 
+    private void boostController(Player p) {
+        if (!p.firstLap) {
+            System.err.println("Checkpoint ID with longest distance " + p.checkpointIdForBoost);
+        }
+
+        if (!p.firstLap && p.checkpointsArray.get(p.checkpointIdForBoost).getX() == p.nextCheckpointX
+                && p.checkpointsArray.get(p.checkpointIdForBoost).getY() == p.nextCheckpointY && p.boost
+                && p.nextCheckpointAngle == 0) {
+            p.boost = false;
+            System.err.println("ACTIVATE BOOST");
+            System.out.println(p.nextCheckpointX + " " + p.nextCheckpointY + "BOOST");
+        }
+    }
 
     public static void main(String args[]) {
         Scanner in = new Scanner(System.in);
@@ -99,6 +146,7 @@ class Player {
             // To debug: System.err.println("Debug messages...");
             p.addCheckpointToArrayList(p);
             p.CheckpointsDebug(p);
+            p.boostController(p);
             // You have to output the target position
             // followed by the power (0 <= thrust <= 100) or "BOOST"
             // i.e.: "x y thrust"
