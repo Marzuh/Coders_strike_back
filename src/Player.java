@@ -180,6 +180,30 @@ class Player {
         p.accelerationCoefficientFromAngle = Math.cos(Math.toRadians(p.nextCheckpointAngle));
     }
 
+    /**
+     * Method contains console outputs with debug info about ship moving
+     * @param p player
+     */
+    private void errLog(Player p) {
+        System.err.println("Coordinates x: " + p.x + "\ty: " + p.y);
+        System.err.println("First lap: " + p.firstLap);
+        System.err.println("Thrust: " + p.thrustInt);
+        System.err.println("Angle " + p.nextCheckpointAngle);
+        System.err.println("Distance " + p.nextCheckpointDist);
+        System.err.println("accCoefDist " + p.accelerationCoefficientFromDist);
+        System.err.println("accCoefAngl " + p.accelerationCoefficientFromAngle);
+    }
+
+    private void setControlCommand(Player p){
+        p.thrustInt = (int) Math.round(100 * p.accelerationCoefficientFromDist
+                * p.accelerationCoefficientFromAngle);
+        p.thrustStr = Integer.toString(p.thrustInt);
+        p.prevTargetX = p.nextCheckpointX;
+        p.prevTargetY = p.nextCheckpointY;
+        p.errLog(p);
+        System.out.println(p.nextCheckpointX + " " + p.nextCheckpointY + " " + p.thrustStr);
+    }
+
     public static void main(String args[]) {
         Scanner in = new Scanner(System.in);
         Player p = new Player();
@@ -196,10 +220,10 @@ class Player {
 
             // Write an action using System.out.println()
             // To debug: System.err.println("Debug messages...");
+
             p.addCheckpointToArrayList(p);
-            p.CheckpointsDebug(p);
             p.findFarthestCheckpointIndex(p);
-            p.boostController(p);
+
             // You have to output the target position
             // followed by the power (0 <= thrust <= 100) or "BOOST"
             // i.e.: "x y thrust"
@@ -216,10 +240,7 @@ class Player {
                     p.setAccelerationCoefficientFromAngle(p);
                 }
                 p.setAccelerationCoefficientFromDist(p);
-                p.thrustInt = (int) Math.round(100 * p.accelerationCoefficientFromDist
-                        * p.accelerationCoefficientFromAngle);
-                p.thrustStr = Integer.toString(p.thrustInt);
-                System.out.println(p.nextCheckpointX + " " + p.nextCheckpointY + " " + p.thrustStr);
+                p.setControlCommand(p);
 
             } else {
                 //not steering
@@ -230,16 +251,12 @@ class Player {
                 }
                 p.setAccelerationCoefficientFromDist(p);
                 p.setAccelerationCoefficientFromAngle(p);
-                p.thrustInt = (int) Math.round(100 * p.accelerationCoefficientFromDist
-                        * p.accelerationCoefficientFromAngle);
-                p.thrustStr = Integer.toString(p.thrustInt);
-                System.out.println(p.nextCheckpointX + " " + p.nextCheckpointY + " " + p.thrustStr);
+                p.setControlCommand(p);
             }
 
 
-            p.prevTargetX = p.nextCheckpointX;
-            p.prevTargetY = p.nextCheckpointY;
-            System.out.println(p.nextCheckpointX + " " + p.nextCheckpointY + " 80");
+
+;
         }
     }
 }
