@@ -18,8 +18,9 @@ class Player {
     private int opponentY = 0;
 
     //for checkpoints
+
     public boolean firstLap = true;
-    private static int checkPointIdForMap = 1;
+    private static int checkPointIdForArray = 1;
     public ArrayList<Player.Checkpoint> checkpointsArray = new ArrayList<>();
     private int prevTargetX = 0;
     private int prevTargetY = 0;
@@ -57,21 +58,25 @@ class Player {
      */
     private void addCheckpointToArrayList(Player p) {
         if (firstLap && p.nextCheckpointX != p.prevTargetX && p.nextCheckpointY != p.prevTargetY) {
-            Player.Checkpoint cp = new Checkpoint(p.nextCheckpointX, p.nextCheckpointY, p.checkPointIdForMap);
+            Player.Checkpoint cp = new Checkpoint(p.nextCheckpointX, p.nextCheckpointY, p.checkPointIdForArray);
 
             if (p.checkpointsArray.isEmpty() || (p.checkpointsArray.get(0).getX() != p.nextCheckpointX
                     && p.checkpointsArray.get(0).getY() != p.nextCheckpointY)) {
                 p.checkpointsArray.add(cp);
                 System.err.println("Checkpoint added, id: " + cp.getId());
-                checkPointIdForMap++;
+                checkPointIdForArray++;
             } else {
                 p.firstLap = false;
             }
         }
     }
 
-    public void CheckpointsDebug(){
+    public void CheckpointsDebug(Player p){
         System.err.println("First lap "+firstLap);
+        System.err.println("next check point x "+p.nextCheckpointX);
+        System.err.println("next check point y "+p.nextCheckpointY);
+
+        System.err.println("Points in list " + p.checkpointsArray.size());
 
     }
 
@@ -93,10 +98,13 @@ class Player {
             // Write an action using System.out.println()
             // To debug: System.err.println("Debug messages...");
             p.addCheckpointToArrayList(p);
-            p.CheckpointsDebug();
+            p.CheckpointsDebug(p);
             // You have to output the target position
             // followed by the power (0 <= thrust <= 100) or "BOOST"
             // i.e.: "x y thrust"
+
+            p.prevTargetX = p.nextCheckpointX;
+            p.prevTargetY = p.nextCheckpointY;
             System.out.println(p.nextCheckpointX + " " + p.nextCheckpointY + " 80");
         }
     }
